@@ -143,15 +143,6 @@ Run the unit test suite:
 npm run test
 ```
 
-### End-to-End (E2E) Testing
-The repository includes a Postman Collection (`wallet-service.postman_collection.json`) designed for comprehensive end-to-end testing.
-
-1.  Import the collection into Postman.
-2.  Configure the collection variables (e.g., `baseUrl`, `jwtToken`).
-3.  Execute the requests to verify system behavior.
-
-Refer to `e2e_testing_guide.md` for detailed testing instructions.
-
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
