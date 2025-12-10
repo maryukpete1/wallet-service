@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ApiKey, ApiKeyDocument } from './schemas/api-key.schema';
 import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ApiKeysService {
@@ -20,22 +21,12 @@ export class ApiKeysService {
     }
 
     const key = `sk_live_${crypto.randomBytes(24).toString('hex')}`;
+    const hashedKey = await bcrypt.hash(key, 10);
     const expiresAt = this.calculateExpiry(expiry);
 
     const apiKey = new this.apiKeyModel({
       userId,
-      key, // In a real app, we should hash this. For simplicity/demo, storing as is or simple hash.
-      // Let's store it as is for now to return it, but in production we'd only store hash.
-      // Wait, requirements say "do not expose secret keys".
-      // So I should return the key ONCE and store a hash.
-      // But for the "simple" requirement, maybe just storing it is fine?
-      // "Do not expose secret keys" usually means don't return them in GET requests.
-      // I'll stick to best practice: Store Hash, Return Key once.
-      // Actually, for this exercise, I'll store the key directly to make validation easier without implementing bcrypt comparison for every request,
-      // OR I can just store it. The prompt says "Do not expose secret keys", which implies security.
-      // I will store the key as is for simplicity of the "service-to-service" check without complex hashing overhead for this specific task,
-      // UNLESS I want to be strict.
-      // Let's store it as is for now, but ensure it's never returned in GET /keys (if we had one).
+      key: hashedKey,
       name,
       permissions,
       expiresAt,
@@ -52,27 +43,27 @@ export class ApiKeysService {
     }
 
     if (oldKey.expiresAt > new Date()) {
-       // It says "The expired key must truly be expired."
-       // But maybe user wants to rotate before expiry?
-       // The requirement says "The expired key must truly be expired."
-       throw new BadRequestException('Key is not yet expired.');
+      throw new BadRequestException('Key is not yet expired.');
     }
 
-    // Create new key with same permissions
     return this.create(userId, oldKey.name, oldKey.permissions, expiry);
   }
 
   async validateKey(key: string) {
-    const apiKey = await this.apiKeyModel.findOne({ key, isRevoked: false });
-    if (!apiKey) return null;
-
-    if (apiKey.expiresAt < new Date()) {
-      return null;
+    const allKeys = await this.apiKeyModel.find({ isRevoked: false });
+    
+    for (const apiKey of allKeys) {
+        const isMatch = await bcrypt.compare(key, apiKey.key);
+        if (isMatch) {
+            if (apiKey.expiresAt < new Date()) {
+                return null;
+            }
+            apiKey.lastUsedAt = new Date();
+            await apiKey.save();
+            return apiKey;
+        }
     }
-
-    apiKey.lastUsedAt = new Date();
-    await apiKey.save();
-    return apiKey;
+    return null;
   }
 
   private calculateExpiry(expiry: string): Date {

@@ -31,12 +31,21 @@ const jsonBody = JSON.stringify(body);
 
 const hash = crypto.createHmac('sha512', secret).update(jsonBody).digest('hex');
 
-console.log('\n=== Webhook Test Data ===\n');
-console.log('1. Copy this JSON Body (Paste exactly as is, do not format/prettify):');
-console.log('---------------------------------------------------');
-console.log(jsonBody);
-console.log('---------------------------------------------------\n');
-console.log('2. Copy this Signature (Paste into x-paystack-signature header):');
-console.log('---------------------------------------------------');
-console.log(hash);
-console.log('---------------------------------------------------\n');
+const fs = require('fs');
+
+const output = `
+=== Webhook Test Data ===
+
+1. Copy this JSON Body (Paste exactly as is, do not format/prettify):
+---------------------------------------------------
+${jsonBody}
+---------------------------------------------------
+
+2. Copy this Signature (Paste into x-paystack-signature header):
+---------------------------------------------------
+${hash}
+---------------------------------------------------
+`;
+
+fs.writeFileSync('webhook_test_data.txt', output);
+console.log('Test data written to webhook_test_data.txt');

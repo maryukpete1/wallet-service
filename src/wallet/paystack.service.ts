@@ -18,8 +18,8 @@ export class PaystackService {
         `${this.baseUrl}/transaction/initialize`,
         {
           email,
-          amount: amount * 100, // Paystack expects amount in kobo
-          callback_url: 'http://localhost:3000/wallet/paystack/callback', // Optional, for frontend redirect
+          amount: amount * 100,
+          callback_url: 'http://localhost:3000/wallet/paystack/callback',
         },
         {
           headers: {

@@ -20,8 +20,6 @@ export class WalletController {
   @ApiOperation({ summary: 'Initialize a deposit' })
   @ApiResponse({ status: 201, description: 'Deposit initialized successfully.' })
   async deposit(@Req() req: any, @Body() body: DepositDto) {
-    // req.user is populated by CompositeAuthGuard (either from JWT or API Key)
-    // If from API Key, req.user = { _id: userId, fromApiKey: true }
     return this.walletService.deposit(req.user._id || req.user.userId, body.amount);
   }
 
@@ -60,17 +58,10 @@ export class WalletController {
   }
   
   @Get('deposit/:reference/status')
-  // Optional manual check, maybe public or auth?
-  // "This endpoint must not credit wallets."
-  // Let's make it authenticated for safety.
   @UseGuards(CompositeAuthGuard, PermissionsGuard)
   @Permissions('read')
   @ApiOperation({ summary: 'Verify deposit status (Optional)' })
   async verifyStatus(@Param('reference') reference: string) {
-      // Implementation of manual check if needed, calling PaystackService.verifyTransaction
-      // For now, I'll skip implementation as it was optional/fallback, but I can add it easily.
-      // The prompt says "5. Verify Deposit Status (Optional Manual Check)"
-      // I'll leave it out for brevity unless requested, or just return a placeholder.
       return { message: "Use webhook for status updates." };
   }
 }

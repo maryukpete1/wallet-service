@@ -18,7 +18,6 @@ export class WalletService {
   ) {}
 
   async createWallet(userId: string) {
-    // Check if wallet exists
     const existing = await this.walletModel.findOne({ userId });
     if (existing) return existing;
 
@@ -46,7 +45,6 @@ export class WalletService {
 
     const initData = await this.paystackService.initializeTransaction(user.email, amount);
     
-    // Create a pending transaction
     const wallet = await this.walletModel.findOne({ userId });
     if (!wallet) throw new NotFoundException('Wallet not found');
 
@@ -84,7 +82,6 @@ export class WalletService {
         return;
       }
 
-      // Verify amount matches (Paystack returns kobo)
       const amountPaid = data.amount / 100;
       if (amountPaid !== transaction.amount) {
          this.logger.error(`Amount mismatch: expected ${transaction.amount}, got ${amountPaid}`);
@@ -134,19 +131,16 @@ export class WalletService {
     const session = await this.walletModel.db.startSession();
     session.startTransaction();
     try {
-      // Deduct from sender
       await this.walletModel.updateOne(
         { _id: senderWallet._id },
         { $inc: { balance: -amount } },
       ).session(session);
 
-      // Add to recipient
       await this.walletModel.updateOne(
         { _id: recipientWallet._id },
         { $inc: { balance: amount } },
       ).session(session);
 
-      // Record transactions
       await this.transactionModel.create([{
         walletId: senderWallet._id,
         type: 'transfer_out',

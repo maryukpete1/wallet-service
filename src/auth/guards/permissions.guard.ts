@@ -19,13 +19,10 @@ export class PermissionsGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const { user, apiKey } = request;
 
-    // If user is logged in via JWT, they have full access (or we can define user roles later)
-    // Requirement: "JWT users can perform all wallet actions."
     if (user) {
       return true;
     }
 
-    // If accessed via API Key
     if (apiKey) {
       const hasPermission = requiredPermissions.some((permission) =>
         apiKey.permissions.includes(permission),
