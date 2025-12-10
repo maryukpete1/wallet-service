@@ -79,6 +79,31 @@ The padlock icons next to the endpoints should now appear "locked," indicating y
     *   *Tip: You might need to create a second user/wallet to test this fully.*
 4.  Click **Execute**.
 
+### 3.5 Test Webhook (Deposit Confirmation)
+Testing the webhook endpoint is tricky because it requires a valid `x-paystack-signature` header, which is a hash of the request body. We have provided a helper script to generate this for you.
+
+1.  **Generate the Signature and Body**:
+    Open your terminal and run the following command (replace with your test user's email):
+    ```bash
+    node scripts/generate-webhook-signature.js test@example.com
+    ```
+    *This script reads your `PAYSTACK_SECRET_KEY` from `.env`, creates a test payload, and generates the correct signature.*
+
+2.  **Copy the Output**:
+    The script will output a **JSON Body** and a **Signature**.
+
+3.  **Test in Swagger**:
+    1.  Scroll to `POST /wallet/paystack/webhook`.
+    2.  Click **Try it out**.
+    3.  Paste the **Signature** from the script into the `x-paystack-signature` header field.
+    4.  Paste the **JSON Body** from the script into the **Request body** field.
+        *   **Important**: Paste the JSON *exactly* as output by the script (minified). Do not "prettify" or format it, as this will change the hash and cause verification to fail.
+    5.  Click **Execute**.
+
+4.  **Verify**:
+    *   Response should be `200 OK`.
+    *   Check the user's balance (`GET /wallet/balance`) to see if it increased by 5000.
+
 ## 4. Troubleshooting
 
 *   **401 Unauthorized**: Your token has expired or was not added correctly. Refresh the page and re-authorize (Step 2).
