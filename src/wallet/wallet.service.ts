@@ -33,7 +33,11 @@ export class WalletService {
   async getBalance(userId: string) {
     const wallet = await this.walletModel.findOne({ userId });
     if (!wallet) throw new NotFoundException('Wallet not found');
-    return { balance: wallet.balance, currency: wallet.currency };
+    return { 
+      balance: wallet.balance, 
+      currency: wallet.currency,
+      wallet_number: wallet.walletNumber 
+    };
   }
 
   async deposit(userId: string, amount: number) {
